@@ -1,0 +1,34 @@
+### 1. Passos para rodar no computador de vocês:
+
+# Caso não esteja instalado, instalar o virtualenv:
+
+sudo apt-get install virtualenv
+
+# Criar um ambiente virtual:
+
+virtualenv serial-opencv
+
+# Ativar o ambiente virtual:
+source serial-opencv/bin/activate
+
+# Para rodar o código da camera, basta executar:
+python3 video-capture.py
+
+# Para executar o código do robô, primeiro é preciso:
+# Editar as permissões na porta ttyACM0 (porta USB que está conectada com o Arduino de forma serial:
+
+sudo echo "KERNEL==\"ttyACM0\", MODE=\"0666\"" >> /etc/udev/rules.d/ttyACM0.rules
+
+# Recarregar as regras de dispositivos:
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+
+# Após esse ponto, você pode plugar o Arduino e camera no seu computador e executar o seguinte código para teste:
+python3 serial_cvwaitkey.py
+
+### 2. Passos para rodar no computador do laboratórios:
+source serial-opencv/bin/activate
+python3 serial_cvwaitkey.py
+
+
+### Obs.: todos os comandos são considerando que você já está na pasta em que o código está armazenado.
