@@ -26,7 +26,7 @@ def get_dominant_color(arr):
     sat = img_hsv[y_start:y_end, x_start:x_end, 1]
     val = img_hsv[y_start:y_end, x_start:x_end, 2]
 
-    colors = {0: "black", 1: "red", 2: "green", 3: "blue"}
+    colors = {0: "s", 1: "a", 2: "d", 3: "w"}
     color_sums = [
         np.sum(val < 60),  # Preto
         np.sum(np.sum((r > b) & (r > g) & (val > 50) & (sat > 50))),  # Vermelho
@@ -63,7 +63,7 @@ def show_color(arr, color):
 def process_image(image):
     arr = np.asarray(image).astype(np.uint8)
     new_img, color = get_dominant_color(arr)
-    print("color = ", color)
+    print(color)
     cv.imshow("frame", new_img)
 
 def process_image_debug(image):
@@ -112,8 +112,8 @@ while True:
         print("Can't receive frame (stream end?). Exiting ...")
         break
 
-    # process_image(frame)
-    process_image_debug(frame)
+    process_image(frame)
+    # process_image_debug(frame)
 
     print(datetime.utcnow().strftime("%F %T.%f")[:-3])
 
