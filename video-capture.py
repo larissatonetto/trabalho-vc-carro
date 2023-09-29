@@ -42,6 +42,7 @@ def show_color(arr, color):
     b = arr[:,:,0]
     g = arr[:,:,1]
     r = arr[:,:,2]
+    sat = img_hsv[:,:,1]
     val = img_hsv[:,:,2]
 
     new_arr = arr.copy()
@@ -49,11 +50,11 @@ def show_color(arr, color):
     if color == "black":
         new_arr[val > 50] = (255, 255, 255)
     elif color == "red":
-        new_arr[(r < b) | (r < g) | (val < 50)] = (255, 255, 255)
+        new_arr[(r < b) | (r < g) | (val < 50) | (sat < 50)] = (255, 255, 255)
     elif color == "green":
-        new_arr[(g < r) | (g < b) | (val < 50)] = (255, 255, 255)
+        new_arr[(g < r) | (g < b) | (val < 50) | (sat < 50)] = (255, 255, 255)
     else:
-        new_arr[(b < r) | (b < g) | (val < 50)] = (255, 255, 255)
+        new_arr[(b < r) | (b < g) | (val < 50) | (sat < 50)] = (255, 255, 255)
 
     return new_arr
 
@@ -110,8 +111,8 @@ while True:
         print("Can't receive frame (stream end?). Exiting ...")
         break
 
-    process_image(frame)
-    # process_image_debug(frame)
+    # process_image(frame)
+    process_image_debug(frame)
 
     print(datetime.utcnow().strftime("%F %T.%f")[:-3])
 
