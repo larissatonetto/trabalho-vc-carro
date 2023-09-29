@@ -23,14 +23,15 @@ def get_dominant_color(arr):
     b = arr[y_start:y_end, x_start:x_end, 0]
     g = arr[y_start:y_end, x_start:x_end, 1]
     r = arr[y_start:y_end, x_start:x_end, 2]
+    sat = img_hsv[y_start:y_end, x_start:x_end, 1]
     val = img_hsv[y_start:y_end, x_start:x_end, 2]
 
     colors = {0: "black", 1: "red", 2: "green", 3: "blue"}
     color_sums = [
         np.sum(val < 60),  # Preto
-        np.sum(np.sum((r > b) & (r > g) & (val > 50))),  # Vermelho
-        np.sum(np.sum((g > r) & (g > b) & (val > 50))),  # Verde
-        np.sum(np.sum((b > r) & (b > g) & (val > 50))),  # Azul
+        np.sum(np.sum((r > b) & (r > g) & (val > 50) & (sat > 50))),  # Vermelho
+        np.sum(np.sum((g > r) & (g > b) & (val > 50) & (sat > 50))),  # Verde
+        np.sum(np.sum((b > r) & (b > g) & (val > 50) & (sat > 50))),  # Azul
     ]
 
     return (arr, colors[np.argmax(color_sums)])
@@ -42,6 +43,7 @@ def show_color(arr, color):
     b = arr[:,:,0]
     g = arr[:,:,1]
     r = arr[:,:,2]
+    sat = img_hsv[:,:,1]
     val = img_hsv[:,:,2]
 
     new_arr = arr.copy()
@@ -49,11 +51,11 @@ def show_color(arr, color):
     if color == "black":
         new_arr[val > 50] = (255, 255, 255)
     elif color == "red":
-        new_arr[(r < b) | (r < g) | (val < 50)] = (255, 255, 255)
+        new_arr[(r < b) | (r < g) | (val < 50) | (sat < 50)] = (255, 255, 255)
     elif color == "green":
-        new_arr[(g < r) | (g < b) | (val < 50)] = (255, 255, 255)
+        new_arr[(g < r) | (g < b) | (val < 50) | (sat < 50)] = (255, 255, 255)
     else:
-        new_arr[(b < r) | (b < g) | (val < 50)] = (255, 255, 255)
+        new_arr[(b < r) | (b < g) | (val < 50) | (sat < 50)] = (255, 255, 255)
 
     return new_arr
 
