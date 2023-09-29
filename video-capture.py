@@ -112,8 +112,8 @@ while True:
         print("Can't receive frame (stream end?). Exiting ...")
         break
 
-    process_image(frame)
-    # process_image_debug(frame)
+    # process_image(frame)
+    process_image_debug(frame)
 
     print(datetime.utcnow().strftime("%F %T.%f")[:-3])
 
