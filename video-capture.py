@@ -22,8 +22,8 @@ def getDominantColor(arr):
     arr[y_start:y_end, x_start] = (0, 0, 0)
     arr[y_start:y_end, x_end] = (0, 0, 0)
 
-    b, g, r = np.split(arr[y_start:y_end, x_start:x_end], 3, axis=2)
-    hue, sat, val = np.split(img_hsv[y_start:y_end, x_start:x_end], 3, axis=2)
+    b, g, r = cv.split(arr[y_start:y_end, x_start:x_end])
+    hue, sat, val = cv.split(img_hsv[y_start:y_end, x_start:x_end])
 
     keys = {0: "s", 1: "a", 2: "d", 3: "w"}
     color_sums = [
@@ -40,8 +40,8 @@ def showColor(arr, color):
     img_hsv = cv.cvtColor(arr, cv.COLOR_BGR2HSV)
     new_arr = arr.copy()
 
-    b, g, r = np.split(arr[y_start:y_end, x_start:x_end], 3, axis=2)
-    hue, sat, val = np.split(img_hsv[y_start:y_end, x_start:x_end], 3, axis=2)
+    b, g, r = cv.split(arr)
+    hue, sat, val = cv.split(img_hsv)
 
     if color == "Preto":
         new_arr[val > 50] = (255, 255, 255)
@@ -111,7 +111,7 @@ while True:
         break
 
     key = processImage(frame)
-    # processImageDebug(frame)
+    processImageDebug(frame)
     if key == ("w"):
         # ser.write(b"w")
         print("w")
