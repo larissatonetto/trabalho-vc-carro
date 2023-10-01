@@ -1,6 +1,7 @@
 import numpy as np
 import cv2 as cv
 from datetime import datetime
+import serial
 
 # change the resolution and fps to match your device
 fps = 30.0
@@ -24,7 +25,7 @@ def getDominantColor(arr):
     b, g, r = np.split(arr[y_start:y_end, x_start:x_end], 3, axis=2)
     hue, sat, val = np.split(img_hsv[y_start:y_end, x_start:x_end], 3, axis=2)
 
-    commands = {0: "s", 1: "a", 2: "d", 3: "w"}
+    keys = {0: "s", 1: "a", 2: "d", 3: "w"}
     color_sums = [
         np.sum(val < 50),  # Preto
         np.sum(np.sum((r > b) & (r > g) & (val > 50) & (sat > 50))),  # Vermelho
@@ -32,7 +33,7 @@ def getDominantColor(arr):
         np.sum(np.sum((b > r) & (b > g) & (val > 50) & (sat > 50))),  # Azul
     ]
 
-    return (arr, commands[np.argmax(color_sums)])
+    return (arr, keys[np.argmax(color_sums)])
 
 
 def showColor(arr, color):
@@ -56,9 +57,9 @@ def showColor(arr, color):
 
 def processImage(image):
     arr = np.asarray(image).astype(np.uint8)
-    new_img, command = getDominantColor(arr)
+    new_img, key = getDominantColor(arr)
     cv.imshow("frame", new_img)
-    return command
+    return key
 
 
 def processImageDebug(image):
@@ -99,6 +100,7 @@ if (
 else:
     print("Configuração de câmera OK.")
 
+# ser = serial.Serial("/dev/ttyACM0", 9600)
 
 while True:
     # Capture frame-by-frame
@@ -108,9 +110,20 @@ while True:
         print("Can't receive frame (stream end?). Exiting ...")
         break
 
-    comm = processImage(frame)
-    print(comm)
+    key = processImage(frame)
     # processImageDebug(frame)
+    if key == ("w"):
+        # ser.write(b"w")
+        print("w")
+    elif key == ("a"):
+        # ser.write(b"a")
+        print("a")
+    elif key == ("s"):
+        # ser.write(b"s")
+        print("s")
+    else:
+        # ser.write(b"d")
+        print("d")
 
     print(datetime.utcnow().strftime("%F %T.%f")[:-3])
 
@@ -119,4 +132,5 @@ while True:
 
 # When everything done, release the capture
 cap.release()
+# ser.close()
 cv.destroyAllWindows()
