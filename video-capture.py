@@ -12,7 +12,8 @@ x_end = int(width / 2 + width / 4)
 y_start = int(height / 2 - height / 4)
 y_end = int(height / 2 + height / 4)
 
-def get_dominant_color(arr):
+
+def getDominantColor(arr):
     img_hsv = cv.cvtColor(arr, cv.COLOR_BGR2HSV)
 
     arr[y_start, x_start:x_end] = (0, 0, 0)
@@ -20,39 +21,32 @@ def get_dominant_color(arr):
     arr[y_start:y_end, x_start] = (0, 0, 0)
     arr[y_start:y_end, x_end] = (0, 0, 0)
 
-    b = arr[y_start:y_end, x_start:x_end, 0]
-    g = arr[y_start:y_end, x_start:x_end, 1]
-    r = arr[y_start:y_end, x_start:x_end, 2]
-    sat = img_hsv[y_start:y_end, x_start:x_end, 1]
-    val = img_hsv[y_start:y_end, x_start:x_end, 2]
+    b, g, r = np.split(arr[y_start:y_end, x_start:x_end], 3, axis=2)
+    hue, sat, val = np.split(img_hsv[y_start:y_end, x_start:x_end], 3, axis=2)
 
-    colors = {0: "s", 1: "a", 2: "d", 3: "w"}
+    commands = {0: "s", 1: "a", 2: "d", 3: "w"}
     color_sums = [
-        np.sum(val < 60),  # Preto
+        np.sum(val < 50),  # Preto
         np.sum(np.sum((r > b) & (r > g) & (val > 50) & (sat > 50))),  # Vermelho
         np.sum(np.sum((g > r) & (g > b) & (val > 50) & (sat > 50))),  # Verde
         np.sum(np.sum((b > r) & (b > g) & (val > 50) & (sat > 50))),  # Azul
     ]
 
-    return (arr, colors[np.argmax(color_sums)])
+    return (arr, commands[np.argmax(color_sums)])
 
 
-def show_color(arr, color):
+def showColor(arr, color):
     img_hsv = cv.cvtColor(arr, cv.COLOR_BGR2HSV)
-
-    b = arr[:,:,0]
-    g = arr[:,:,1]
-    r = arr[:,:,2]
-    sat = img_hsv[:,:,1]
-    val = img_hsv[:,:,2]
-
     new_arr = arr.copy()
 
-    if color == "black":
+    b, g, r = np.split(arr[y_start:y_end, x_start:x_end], 3, axis=2)
+    hue, sat, val = np.split(img_hsv[y_start:y_end, x_start:x_end], 3, axis=2)
+
+    if color == "Preto":
         new_arr[val > 50] = (255, 255, 255)
-    elif color == "red":
+    elif color == "Vermelho":
         new_arr[(r < b) | (r < g) | (val < 50) | (sat < 50)] = (255, 255, 255)
-    elif color == "green":
+    elif color == "Verde":
         new_arr[(g < r) | (g < b) | (val < 50) | (sat < 50)] = (255, 255, 255)
     else:
         new_arr[(b < r) | (b < g) | (val < 50) | (sat < 50)] = (255, 255, 255)
@@ -60,24 +54,26 @@ def show_color(arr, color):
     return new_arr
 
 
-def process_image(image):
+def processImage(image):
     arr = np.asarray(image).astype(np.uint8)
-    new_img, color = get_dominant_color(arr)
-    print(color)
+    new_img, command = getDominantColor(arr)
     cv.imshow("frame", new_img)
+    return command
 
-def process_image_debug(image):
+
+def processImageDebug(image):
     arr = np.asarray(image).astype(np.uint8)
-    img_black = show_color(arr, "black")
-    img_red = show_color(arr, "red")
-    img_green = show_color(arr, "green")
-    img_blue = show_color(arr, "blue")
+    img_black = showColor(arr, "Preto")
+    img_red = showColor(arr, "Vermelho")
+    img_green = showColor(arr, "Verde")
+    img_blue = showColor(arr, "Azul")
 
-    cv.imshow("black", img_black)
-    cv.imshow("red", img_red)
-    cv.imshow("green", img_green)
-    cv.imshow("blue", img_blue)
-    cv.imshow("original", image)
+    cv.imshow("Preto", img_black)
+    cv.imshow("Vermelho", img_red)
+    cv.imshow("Verde", img_green)
+    cv.imshow("Azul", img_blue)
+    cv.imshow("Original", image)
+
 
 # Change the camera id
 cap = cv.VideoCapture(0)
@@ -112,8 +108,9 @@ while True:
         print("Can't receive frame (stream end?). Exiting ...")
         break
 
-    process_image(frame)
-    # process_image_debug(frame)
+    comm = processImage(frame)
+    print(comm)
+    # processImageDebug(frame)
 
     print(datetime.utcnow().strftime("%F %T.%f")[:-3])
 
