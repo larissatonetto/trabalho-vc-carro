@@ -4,7 +4,7 @@ from datetime import datetime
 import serial
 
 # change the resolution and fps to match your device
-fps = 30.0
+fps = 10.0
 height = 240.0
 width = 320.0
 
@@ -12,6 +12,9 @@ x_start = int(width / 2 - width / 4)
 x_end = int(width / 2 + width / 4)
 y_start = int(height / 2 - height / 4)
 y_end = int(height / 2 + height / 4)
+
+v = 35
+s = 35
 
 
 def getDominantColor(arr):
@@ -27,10 +30,10 @@ def getDominantColor(arr):
 
     keys = {0: "s", 1: "a", 2: "d", 3: "w"}
     color_sums = [
-        np.sum(val < 50),  # Preto
-        np.sum(np.sum((r > b) & (r > g) & (val > 50) & (sat > 50))),  # Vermelho
-        np.sum(np.sum((g > r) & (g > b) & (val > 50) & (sat > 50))),  # Verde
-        np.sum(np.sum((b > r) & (b > g) & (val > 50) & (sat > 50))),  # Azul
+        np.sum(val < v),  # Preto
+        np.sum(np.sum((r > b) & (r > g) & (val > v) & (sat >= s))),  # Vermelho
+        np.sum(np.sum((g > r) & (g > b) & (val > v) & (sat >= s))),  # Verde
+        np.sum(np.sum((b > r) & (b > g) & (val > v) & (sat >= s))),  # Azul
     ]
 
     return (arr, keys[np.argmax(color_sums)])
@@ -44,13 +47,13 @@ def showColor(arr, color):
     hue, sat, val = cv.split(img_hsv)
 
     if color == "Preto":
-        new_arr[val > 50] = (255, 255, 255)
+        new_arr[val >= v] = (255, 255, 255)
     elif color == "Vermelho":
-        new_arr[(r < b) | (r < g) | (val < 50) | (sat < 50)] = (255, 255, 255)
+        new_arr[(r < b) | (r < g) | (val < v) | (sat < s)] = (255, 255, 255)
     elif color == "Verde":
-        new_arr[(g < r) | (g < b) | (val < 50) | (sat < 50)] = (255, 255, 255)
+        new_arr[(g < r) | (g < b) | (val < v) | (sat < s)] = (255, 255, 255)
     else:
-        new_arr[(b < r) | (b < g) | (val < 50) | (sat < 50)] = (255, 255, 255)
+        new_arr[(b < r) | (b < g) | (val < v) | (sat < s)] = (255, 255, 255)
 
     return new_arr
 
@@ -100,7 +103,7 @@ if (
 else:
     print("Configuração de câmera OK.")
 
-# ser = serial.Serial("/dev/ttyACM0", 9600)
+ser = serial.Serial("/dev/ttyACM0", 9600)
 
 while True:
     # Capture frame-by-frame
@@ -113,7 +116,7 @@ while True:
     key = processImage(frame)
     processImageDebug(frame)
     if key == ("w"):
-        # ser.write(b"w")
+        #ser.write(b"w")
         print("w")
     elif key == ("a"):
         # ser.write(b"a")
@@ -132,5 +135,6 @@ while True:
 
 # When everything done, release the capture
 cap.release()
-# ser.close()
+ser.close()
 cv.destroyAllWindows()
+
