@@ -45,10 +45,10 @@ def get_dom_color(img):
 
     keys = {0: "s", 1: "a", 2: "d", 3: "w"}
     color_sums = [
-        np.sum(val < v),  # Preto
-        np.sum(np.sum((r > b) & (r > g) & (val > v) & (sat >= s))),  # Vermelho
-        np.sum(np.sum((g > r) & (g > b) & (val > v) & (sat >= s))),  # Verde
-        np.sum(np.sum((b > r) & (b > g) & (val > v) & (sat >= s))),  # Azul
+        np.sum(val < V),  # Preto
+        np.sum(np.sum((r > b) & (r > g) & (val > V) & (sat >= s))),  # Vermelho
+        np.sum(np.sum((g > r) & (g > b) & (val > V) & (sat >= s))),  # Verde
+        np.sum(np.sum((b > r) & (b > g) & (val > V) & (sat >= s))),  # Azul
     ]
 
     return (img, keys[np.argmax(color_sums)])
@@ -166,14 +166,6 @@ def show_color(img, color):
     return new_img
 
 
-# Encontra os elementos da pista e retorna o comando para movimentar o carro
-def processImage(image):
-    arr = np.asarray(image).astype(np.uint8)
-    new_img, key = get_dom_color(arr)
-    cv.imshow("frame", new_img)
-    return key
-
-
 # Encontra os elementos da pista e abre uma janela para cada um
 def processImageDebug(image):
     arr = np.asarray(image).astype(np.uint8)
@@ -272,7 +264,7 @@ def teste_video():
     while cap.isOpened():
         _, frame = cap.read()
 
-        arr = np.asarray(frame).astype(np.uint8)
+        arr = np.asarray(frame).astype(np.get)
 
         mask = get_mask_pista(arr)
         edges = canny(mask)  # Isola a pista antes de detectar as bordas
@@ -303,7 +295,87 @@ def teste_video():
             break
 
 
-teste_video()
+# Encontra os elementos da pista e retorna o comando para movimentar o carro
+def processImage(image):
+    arr = np.asarray(image).astype(np.uint8)
+
+    # Separa pista
+    mask = get_mask_pista(arr)
+    edges = canny(mask)  # Isola a pista antes de detectar as bordas
+
+    cropped_image = region_of_interest(edges)
+
+    edges2 = canny(cropped_image)
+
+    f1 = detecta_linha(edges, arr)  # imagem, gool left, bool right
+    f2 = detecta_linha(edges2, dilation(cropped_image))
+    circ = detecta_placa(arr)
+
+    cv.imshow("imagem", f1[0])
+    cv.imshow("result", f2[0])
+    cv.imshow("placa", circ[0])
+    cv.imshow("frame", image)
+
+    if f2[1] == 1:
+        return "a"
+    if f2[2] == 1:
+        return "d"
+    else:
+        return "w"
+    # return key
+
+
+cap = cv.VideoCapture(0)
+
+if not cap.isOpened():
+    print("Cannot open camera")
+    exit()
+
+cap.set(cv.CAP_PROP_FPS, fps)
+cap.set(cv.CAP_PROP_FRAME_HEIGHT, height)
+cap.set(cv.CAP_PROP_FRAME_WIDTH, width)
+
+if (
+    (cap.get(cv.CAP_PROP_FRAME_WIDTH) != width)
+    or (height != cap.get(cv.CAP_PROP_FRAME_HEIGHT))
+    or (fps != cap.get(cv.CAP_PROP_FPS))
+):
+    print("ERRO na configuração da câmera.")
+    print(f"Width: {cap.get(cv.CAP_PROP_FRAME_WIDTH)}")
+    print(f"Height: {cap.get(cv.CAP_PROP_FRAME_HEIGHT)}")
+    print(f"FPS: {cap.get(cv.CAP_PROP_FPS)}")
+else:
+    print("Configuração de câmera OK.")
+
+# ser = serial.Serial("/dev/ttyACM0", 9600)
+
+while True:
+    # Capture frame-by-frame
+    ret, frame = cap.read()
+    # if frame is read correctly ret is True
+    if not ret:
+        print("Can't receive frame (stream end?). Exiting ...")
+        break
+
+    key = processImage(frame)
+    # processImageDebug(frame)
+    if key == ("w"):
+        # ser.write(b"w")
+        print("w")
+    elif key == ("a"):
+        # ser.write(b"a")
+        print("a")
+    elif key == ("s"):
+        # ser.write(b"s")
+        print("s")
+    else:
+        # ser.write(b"d")
+        print("d")
+
+    print(datetime.utcnow().strftime("%F %T.%f")[:-3])
+
+    if cv.waitKey(1) == ord("q"):
+        break
 
 if cap is not None:
     cap.release()
